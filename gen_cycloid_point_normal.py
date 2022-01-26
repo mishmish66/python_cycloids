@@ -19,17 +19,14 @@ def gen_point_from_wobbles():
     args = np.append(args, (draw_wobbles, input_wobbles, twist))
 
     get_point_expr = cycloid.sym_get_point_from_wobbles(draw_wobbles, input_wobbles, twist)
-    get_point_expr = sp.simplify(get_point_expr)
 
     get_point_routine = code_gen.routine(name='get_point_from_wobbles', expr=get_point_expr)
     code_wrapper.wrap_code(get_point_routine)
 
     get_normal_expr = cycloid.sym_get_normal_from_wobbles(draw_wobbles, input_wobbles, twist)
-    #get_normal_expr = sp.simplify(get_normal_expr)
 
     get_normal_routine = code_gen.routine('get_normal_from_wobbles', expr=get_normal_expr)
     code_wrapper.wrap_code(get_normal_routine)
-
 
 
 gen_point_from_wobbles()

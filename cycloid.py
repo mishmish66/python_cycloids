@@ -81,13 +81,11 @@ class Cycloid:
 
         vel = sp.diff(point, draw_wobbles)
         tan = vector_normalize(vel)
-        #tan = sp.simplify(tan)
 
         curv = sp.diff(tan, draw_wobbles)
         norm = vector_normalize(curv)
-
-        expr = norm#sp.simplify(norm)
-        return expr
+        
+        return norm
 
 
     def draw_rot_per_wobble(self):
