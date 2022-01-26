@@ -5,11 +5,11 @@ import sympy.physics.vector as spv
 from cycloid import *
 from utils import *
 
-tooth_dif = 1
-pins = 7
+tooth_dif = -1
+pins = 5
 pinwheel_r = 1
 pin_r = 0.1
-eccentricity = 0.05
+eccentricity = 0.1
 
 c = Cycloid(pins, tooth_dif, pinwheel_r, pin_r, eccentricity, offset_angle=0, inverted = False)
 
@@ -21,8 +21,6 @@ cd = Cycloid_Drawer(c)
 ca = Cycloid_Animator(cd)
 
 ani = ca.animate(fig, ax)
-
-#cd.plot_cycloid(ax)
 plt.axis('equal')
 
 plt.xlim([-2, 2])

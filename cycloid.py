@@ -21,16 +21,12 @@ class Cycloid:
         self.eccentricity = eccentricity
         self.offset_angle = offset_angle
         self.inverted = inverted
+    
+    def generate_param_array(self):
+        return np.array([self.pin_count, self.tooth_dif, self.pinwheel_r, self.pin_r, self.eccentricity, self.offset_angle, self.inverted])
 
-        draw_wobbles, input_wobbles, twist = sp.symbols('dw iw tw')
-
-        expr = self.sym_get_point_from_wobbles(draw_wobbles, input_wobbles, twist)
-
-        self.get_point_from_wobbles = autowrap(expr, args=[ draw_wobbles, input_wobbles, twist ])
-
-        expr = self.sym_get_normal_from_wobbles(draw_wobbles, input_wobbles, twist)
-
-        self.get_normal_from_wobbles = autowrap(expr, args=[ draw_wobbles, input_wobbles, twist ])
+    def generate_np_param_arr(self):
+        np.array([self.pin_count, self.tooth_dif, self.pinwheel_r, self.pin_r, self.eccentricity, self.offset_angle, self.inverted])
 
     def sym_get_wobble_center(self, input_wobbles):
         return sp.MatMul(get_rot_mat(input_wobbles*2*sp.pi), sp.Matrix([self.eccentricity, 0]))
@@ -81,21 +77,16 @@ class Cycloid:
     def sym_get_normal_from_wobbles(self, draw_wobbles, input_wobbles, twist):
 
         point = self.sym_get_point_from_wobbles(draw_wobbles, input_wobbles, twist)
-
         point = sp.simplify(point)
 
         vel = sp.diff(point, draw_wobbles)
-
         tan = vector_normalize(vel)
-
-        tan = sp.simplify(tan)
+        #tan = sp.simplify(tan)
 
         curv = sp.diff(tan, draw_wobbles)
-
         norm = vector_normalize(curv)
 
-        expr = sp.simplify(norm)
-
+        expr = norm#sp.simplify(norm)
         return expr
 
 
@@ -114,19 +105,19 @@ class Cycloid_Drawer:
         points = self.get_points(input_wobbles, steps)
         ax.plot(points[0], points[1])
 
-    def get_twists(self, input_wobbles):
+    def get_twist(self, input_wobbles):
         return self.cycloid.offset_angle - input_wobbles*self.cycloid.get_rot_per_wobble()*2*math.pi
 
-    def get_point(self, draw_wobbles = 0, input_wobbles = 0, twists = None):
-        if twists == None:
-            twists = self.get_twists(input_wobbles)
-        vec = self.cycloid.get_edge_point_from_wobbles(draw_wobbles, input_wobbles, twists)
+    def get_point(self, draw_wobbles = 0, input_wobbles = 0, twist = None):
+        if twist == None:
+            twist = self.get_twist(input_wobbles)
+        vec = self.cycloid.get_edge_point_from_wobbles(draw_wobbles, input_wobbles, twist)
 
         return vector_unwrap(vec)
             
-    def get_points(self, input_wobbles = 0, steps = 1024, twists = None):
-        if twists == None:
-            twists = self.get_twists(input_wobbles)
+    def get_points(self, input_wobbles = 0, steps = 1024, twist = None):
+        if twist == None:
+            twist = self.get_twist(input_wobbles)
         points_x = np.empty(int(steps))
         points_y = np.empty(int(steps))
 
@@ -134,7 +125,7 @@ class Cycloid_Drawer:
         wobbles_per_step = wobbles/steps
 
         for i in range(0, steps):
-            point = self.get_point(wobbles_per_step*i, input_wobbles, twists)
+            point = self.get_point(wobbles_per_step*i, input_wobbles, twist)
             points_x[i] = point[0]
             points_y[i] = point[1]
     
@@ -144,7 +135,7 @@ class Cycloid_Drawer:
         try:
             vec = self.cycloid.get_normal_from_wobbles(draw_wobbles, input_wobbles, twist)
         except:
-            vec = self.cycloid.get_normal_from_wobbles(draw_wobbles, input_wobbles, self.get_twists(input_wobbles))
+            vec = self.cycloid.get_normal_from_wobbles(draw_wobbles, input_wobbles, self.get_twist(input_wobbles))
 
         return vector_unwrap(vec)
 
