@@ -11,6 +11,8 @@ pinwheel_r = 1
 pin_r = 0.1
 eccentricity = 0.1
 
+
+
 c = Cycloid(pins, tooth_dif, pinwheel_r, pin_r, eccentricity, offset_angle=0, inverted = False)
 
 fig = plt.figure()

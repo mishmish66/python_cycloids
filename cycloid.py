@@ -9,8 +9,10 @@ import matplotlib.animation as animation
 import matplotlib.patches as patches
 import sympy as sp
 import numpy as np
-sym_wobbles = sp.symbols('wob')
-from sympy.utilities.autowrap import autowrap
+import sys
+sys.path.insert(0, "gen")
+from wrapper_module_0 import *
+from wrapper_module_1 import *
 
 class Cycloid:
     def __init__(self, pin_count, tooth_dif, pinwheel_r, pin_r, eccentricity, offset_angle, inverted):
@@ -73,7 +75,6 @@ class Cycloid:
         else:
             return p2
 
-
     def sym_get_normal_from_wobbles(self, draw_wobbles, input_wobbles, twist):
 
         point = self.sym_get_point_from_wobbles(draw_wobbles, input_wobbles, twist)
@@ -84,8 +85,14 @@ class Cycloid:
 
         curv = sp.diff(tan, draw_wobbles)
         norm = vector_normalize(curv)
-        
+
         return norm
+
+    def get_point_from_wobbles(self, draw_wobbles, input_wobbles, twist):
+        return get_point_from_wobbles_c(draw_wobbles, self.eccentricity, input_wobbles, self.offset_angle, self.pin_count, self.pinwheel_r, self.tooth_dif, twist)
+    
+    def get_normal_from_wobbles(self, draw_wobbles, input_wobbles, twist):
+        return get_normal_from_wobbles_c(draw_wobbles, self.eccentricity, self.offset_angle, self.pin_count, self.pinwheel_r, self.tooth_dif, twist)
 
 
     def draw_rot_per_wobble(self):
