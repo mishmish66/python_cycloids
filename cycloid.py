@@ -1,3 +1,4 @@
+from enum import auto
 from locale import normalize
 from multiprocessing.connection import wait
 from tkinter.ttk import setup_master
@@ -12,31 +13,71 @@ sym_wobbles = sp.symbols('wob')
 from sympy.utilities.autowrap import autowrap
 
 class Cycloid:
-    def __init__(self, pin_count, tooth_dif, pinwheel_r, pin_r, eccentricity, offset_angle):
+    def __init__(self, pin_count, tooth_dif, pinwheel_r, pin_r, eccentricity, offset_angle, inverted):
         self.pin_count = pin_count
         self.tooth_dif = tooth_dif
         self.pinwheel_r = pinwheel_r
         self.pin_r = pin_r
         self.eccentricity = eccentricity
         self.offset_angle = offset_angle
+        self.inverted = inverted
 
         draw_wobbles, input_wobbles, twist = sp.symbols('dw iw tw')
-        expr = sp.expand(self.sym_get_point_from_wobbles(draw_wobbles, input_wobbles, twist))
+
+        expr = self.sym_get_point_from_wobbles(draw_wobbles, input_wobbles, twist)
 
         self.get_point_from_wobbles = autowrap(expr, args=[ draw_wobbles, input_wobbles, twist ])
 
-        expr = sp.expand(self.sym_get_normal_from_wobbles(draw_wobbles, input_wobbles, twist))
+        expr = self.sym_get_normal_from_wobbles(draw_wobbles, input_wobbles, twist)
 
         self.get_normal_from_wobbles = autowrap(expr, args=[ draw_wobbles, input_wobbles, twist ])
 
-
+    def sym_get_wobble_center(self, input_wobbles):
+        return sp.MatMul(get_rot_mat(input_wobbles*2*sp.pi), sp.Matrix([self.eccentricity, 0]))
+    
+    def get_wobble_center(self, input_wobbles):
+        return np.matmul(get_np_rot_mat(input_wobbles*2*np.pi), vert([self.eccentricity, 0]))
 
     def sym_get_point_from_wobbles(self, draw_wobbles, input_wobbles, twist):
-        center_pos = sp.MatMul(get_rot_mat(input_wobbles*2*sp.pi), sp.Matrix([self.eccentricity, 0]))
+        center_pos = self.sym_get_wobble_center(input_wobbles)
         wobble_pos = sp.MatMul(get_rot_mat(draw_wobbles*2*sp.pi + self.offset_angle + twist), sp.Matrix([-self.eccentricity, 0]))
         rotation_pos = sp.MatMul(get_rot_mat(draw_wobbles*2*sp.pi * self.draw_rot_per_wobble() + self.offset_angle + twist), sp.Matrix([self.pinwheel_r, 0]))
         return center_pos + wobble_pos + rotation_pos
     
+    def sym_get_edge_point_from_wobbles(self, draw_wobbles, input_wobbles, twist, normal = None):
+        center = self.sym_get_wobble_center(input_wobbles)
+        point = self.sym_get_point_from_wobbles(draw_wobbles, input_wobbles, twist)
+
+        v1 = point + normal * self.pin_r
+        v1 = sp.simplify(v1)
+
+        v2 = point - normal * self.pin_r
+        v2 = sp.simplify(v2)
+
+        d1 = vectors_distance(v1, center)
+        d2 = vectors_distance(v2, center)
+
+        return sp.Piecewise((v1, d1 > d2), (v2, True))
+    
+    def get_edge_point_from_wobbles(self, draw_wobbles, input_wobbles, twist):
+        center_pos = to_np(self.get_wobble_center(input_wobbles))
+        point = to_np(self.get_point_from_wobbles(draw_wobbles, input_wobbles, twist))
+        normal = to_np(self.get_normal_from_wobbles(draw_wobbles, input_wobbles, twist))
+
+        p1 = point + normal * self.pin_r
+        p2 = point - normal * self.pin_r
+
+        cond = np_vec_dist(p1, center_pos) < np_vec_dist(p2, center_pos)
+        
+        if self.inverted:
+            cond = not cond
+
+        if cond:
+            return p1
+        else:
+            return p2
+
+
     def sym_get_normal_from_wobbles(self, draw_wobbles, input_wobbles, twist):
 
         point = self.sym_get_point_from_wobbles(draw_wobbles, input_wobbles, twist)
@@ -53,7 +94,7 @@ class Cycloid:
 
         norm = vector_normalize(curv)
 
-        expr = sp.expand(norm)
+        expr = sp.simplify(norm)
 
         return expr
 
@@ -76,30 +117,28 @@ class Cycloid_Drawer:
     def get_twists(self, input_wobbles):
         return self.cycloid.offset_angle - input_wobbles*self.cycloid.get_rot_per_wobble()*2*math.pi
 
-    def get_point(self, draw_wobbles = 0, input_wobbles = 0, twist = None):
-        try:
-            vec = self.cycloid.get_point_from_wobbles(draw_wobbles, input_wobbles, twist)
-        except:
-            vec = self.cycloid.get_point_from_wobbles(draw_wobbles, input_wobbles, self.get_twists(input_wobbles))
+    def get_point(self, draw_wobbles = 0, input_wobbles = 0, twists = None):
+        if twists == None:
+            twists = self.get_twists(input_wobbles)
+        vec = self.cycloid.get_edge_point_from_wobbles(draw_wobbles, input_wobbles, twists)
 
         return vector_unwrap(vec)
             
-    def get_points(self, input_wobbles = 0, steps = 1024, twist = None):
-        try:
-            points_x = np.empty(int(steps))
-            points_y = np.empty(int(steps))
+    def get_points(self, input_wobbles = 0, steps = 1024, twists = None):
+        if twists == None:
+            twists = self.get_twists(input_wobbles)
+        points_x = np.empty(int(steps))
+        points_y = np.empty(int(steps))
 
-            wobbles = self.cycloid.draw_rot_per_wobble()**-1
-            wobbles_per_step = wobbles/steps
+        wobbles = self.cycloid.draw_rot_per_wobble()**-1
+        wobbles_per_step = wobbles/steps
 
-            for i in range(0, steps):
-                point = self.cycloid.get_point_from_wobbles(wobbles_per_step*i, input_wobbles, twist)
-                points_x[i] = point[0]
-                points_y[i] = point[1]
-        
-            return [points_x, points_y]
-        except:
-            return self.get_points(input_wobbles, steps, self.get_twists(input_wobbles))
+        for i in range(0, steps):
+            point = self.get_point(wobbles_per_step*i, input_wobbles, twists)
+            points_x[i] = point[0]
+            points_y[i] = point[1]
+    
+        return [points_x, points_y]
         
     def get_normal(self, draw_wobbles = 0, input_wobbles = 0, twist = None):
         try:
