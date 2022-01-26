@@ -1,11 +1,12 @@
 import matplotlib.pyplot as plt
-from sympy import *
-import numpy as np
+import sympy as sp
+from sympy.abc import W
+import sympy.physics.vector as spv
 from cycloid import *
 from utils import *
 
 tooth_dif = -1
-pins = 4
+pins = 5
 pinwheel_r = 1
 pin_r = 0.1
 eccentricity = 0.1
@@ -15,14 +16,16 @@ c = Cycloid(pins, tooth_dif, pinwheel_r, pin_r, eccentricity, offset_angle=0)
 fig = plt.figure()
 ax = plt.axes()
 
-cd = Cycloid_Drawer(c, 256)
+cd = Cycloid_Drawer(c)
 
-ca = Cycloid_Animator(cd, wobble_step=0.01)
+ca = Cycloid_Animator(cd)
 
 ani = ca.animate(fig, ax)
 
+#cd.plot_cycloid(ax)
+plt.axis('equal')
+
 plt.xlim([-2, 2])
 plt.ylim([-2, 2])
-plt.axis('equal')
 
 plt.show()
