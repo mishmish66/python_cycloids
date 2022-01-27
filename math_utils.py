@@ -35,3 +35,4 @@ def np_mag(v):
 
 def np_vec_dist(v1, v2):
     return np_mag(v1-v2)
+
