@@ -18,7 +18,6 @@ class Cycloid_Drawer:
         if twist == None:
             twist = self.get_twist(input_wobbles)
         vec = self.cycloid.get_edge_point_from_wobbles(draw_wobbles, input_wobbles, twist)
-        #vec = self.cycloid.get_point_from_wobbles(draw_wobbles, input_wobbles, twist)
 
         return vector_unwrap(vec)
             

@@ -21,7 +21,6 @@ class Cycloid_Animator:
         points = np.empty([steps, 2, self.drawer.steps])
 
         for step in range(0, steps):
-            print(step)
             points[step] = self.drawer.get_points(step*self.wobble_step, self.drawer.steps)
 
         return points
@@ -32,7 +31,6 @@ class Cycloid_Animator:
         vector_vals = np.empty([steps, 2])
 
         for step in range(0, steps):
-            print(step)
             base_points[step] = self.drawer.get_point(0, step*self.wobble_step)
             vector_vals[step] = self.drawer.get_normal(0, step*self.wobble_step)
         
