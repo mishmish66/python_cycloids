@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
-from cycloid_drawer import Cycloid_Drawer
-from cycloid_animator import Cycloid_Animator
-from cycloid import Cycloid
-from cycloid_params import Cycloid_Params
+from src.cycloid_drawer import Cycloid_Drawer
+from src.cycloid_animator import Cycloid_Animator
+from src.cycloid import Cycloid
+from src.cycloid_params import Cycloid_Params
 
 tooth_dif = -1
 pins = 5

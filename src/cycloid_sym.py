@@ -1,4 +1,4 @@
-from math_utils import *
+from src.utils.math_utils import *
 import sympy as sp
 
 class Cycloid_Sym:

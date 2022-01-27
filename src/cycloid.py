@@ -1,6 +1,6 @@
 import numpy as np
-from func_utils import get_funcs
-from math_utils import (to_np, np_vec_dist, get_np_rot_mat, vert)
+from src.utils.func_utils import get_funcs
+from src.utils.math_utils import (to_np, np_vec_dist, get_np_rot_mat, vert)
 
 class Cycloid:
     def __init__(self, cycloid_params):

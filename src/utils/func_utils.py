@@ -1,6 +1,6 @@
 import os
 import importlib
-from gen_funcs import gen_funcs
+from src.gen_funcs import gen_funcs
 from inspect import isroutine
 
 def get_funcs():
@@ -17,7 +17,7 @@ def funcs_need_reloading():
 
 def find_pyx():
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    dir_path = dir_path + "/gen"
+    dir_path = dir_path + "/../../gen"
     func_files = []
 
     for _, _, files in os.walk(dir_path):

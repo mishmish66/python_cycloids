@@ -1,5 +1,5 @@
-from math_utils import *
-from cycloid import Cycloid
+from src.utils.math_utils import *
+from src.cycloid import Cycloid
 import math
 
 class Cycloid_Drawer:
