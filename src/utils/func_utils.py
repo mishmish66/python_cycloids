@@ -2,34 +2,33 @@ import os
 import importlib
 from src.gen_funcs import gen_funcs
 from inspect import isroutine
+from pathlib import Path
 
 def get_funcs():
     if funcs_need_reloading():
         gen_funcs()
     
-    pyx_arr = find_pyx()
+    mod_arr = find_generated_mods()
 
-    return get_funcs_from_mods(pyx_arr)
+    return get_funcs_from_mods(mod_arr)
 
 
 def funcs_need_reloading():
     return True # TODO make this actually do stuff
 
-def find_pyx():
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    dir_path = dir_path + "/../../gen"
+def find_generated_mods():
+    dir_path = Path(os.path.realpath(__file__)).parents[2].joinpath("gen")
     func_files = []
 
-    for _, _, files in os.walk(dir_path):
-        for file in files:
-            if file.endswith('.pyx'):
-                func_files.append(file[0:-4])
+    for file in dir_path.iterdir():
+        if file.match("*.so"):
+            func_files.append(file)
     return func_files
     
-def get_funcs_from_mods(mod_file_arr):
+def get_funcs_from_mods(mod_files):
     funcs = {}
-    for mod_file in mod_file_arr:
-        mod = importlib.import_module(mod_file)
+    for mod_file in mod_files:
+        mod = importlib.import_module(str(mod_file.name).split('.')[0], str(mod_file.parent))
         funcs = funcs | get_funcs_from_mod(mod)
     return funcs
 
@@ -37,6 +36,6 @@ def get_funcs_from_mod(mod):
     funcs = {}
     for attr_name in dir(mod):
         attr = getattr(mod, attr_name)
-        if isroutine(attr):
+        if str(type(attr)) == '<class \'fortran\'>':
             funcs[attr_name] = attr
     return funcs

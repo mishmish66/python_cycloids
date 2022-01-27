@@ -34,5 +34,10 @@ def np_mag(v):
     return np.sqrt(mag_sq)
 
 def np_vec_dist(v1, v2):
-    return np_mag(v1-v2)
+    return np_mag(v1 - v2)
 
+def toggle(bool):
+    if bool:
+        return sp.true
+    else:
+        return sp.false

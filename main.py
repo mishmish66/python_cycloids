@@ -5,7 +5,7 @@ from src.cycloid import Cycloid
 from src.cycloid_params import Cycloid_Params
 
 tooth_dif = -1
-pins = 5
+pins = 6
 pinwheel_r = 1
 pin_r = 0.1
 eccentricity = 0.1

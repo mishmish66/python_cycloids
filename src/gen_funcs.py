@@ -1,4 +1,5 @@
 from asyncore import write
+import code
 from re import sub
 from src.cycloid_params import Cycloid_Params
 from src.cycloid_sym import Cycloid_Sym
@@ -9,10 +10,11 @@ from sympy.utilities.autowrap import *
 
 def gen_funcs():
 
-    code_gen = CCodeGen('get_cycloid_params', preprocessor_statements=["#define M_PI 3.14159265358979323846", "#include <math.h>"])
-    code_wrapper = CythonCodeWrapper(code_gen, "gen")
+    code_gen = FCodeGen('get_cycloid_params')#, preprocessor_statements=["#define M_PI 3.14159265358979323846", "#define pi 3.14159265358979323846", "#include <math.h>"])
+    code_wrapper = F2PyCodeWrapper(code_gen, "gen")#CythonCodeWrapper(code_gen, "gen")
 
-    pin_count, tooth_dif, pinwheel_r, pin_r, eccentricity, offset_angle, inverted = sp.symbols('pin_count tooth_dif pinwheel_r pin_r eccentricity offset_angle inverted')
+    pin_count, tooth_dif, pinwheel_r, pin_r, eccentricity, offset_angle = sp.symbols('pin_count tooth_dif pinwheel_r pin_r eccentricity offset_angle')
+    inverted = sp.Symbol('inverted', bool=True)
     draw_wobbles, input_wobbles, twist = sp.symbols('draw_wobbles input_wobbles twist')
 
     cycloid_params = Cycloid_Params(pin_count, tooth_dif, pinwheel_r, pin_r, eccentricity, offset_angle, inverted)
@@ -30,3 +32,8 @@ def gen_funcs():
 
     get_normal_routine = code_gen.routine('get_normal_from_wobbles', expr=get_normal_expr)
     code_wrapper.wrap_code(get_normal_routine)
+
+    get_edge_expr = cycloid.get_edge_point_from_wobbles(draw_wobbles, input_wobbles, twist)
+
+    get_edge_routine = code_gen.routine('get_edge_from_wobbles', expr=get_edge_expr)
+    code_wrapper.wrap_code(get_edge_routine)

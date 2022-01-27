@@ -18,14 +18,15 @@ class Cycloid_Drawer:
         if twist == None:
             twist = self.get_twist(input_wobbles)
         vec = self.cycloid.get_edge_point_from_wobbles(draw_wobbles, input_wobbles, twist)
+        #vec = self.cycloid.get_point_from_wobbles(draw_wobbles, input_wobbles, twist)
 
         return vector_unwrap(vec)
             
     def get_points(self, input_wobbles = 0, steps = 1024, twist = None):
         if twist == None:
             twist = self.get_twist(input_wobbles)
-        points_x = np.empty(int(steps))
-        points_y = np.empty(int(steps))
+        points_x = np.empty(steps)
+        points_y = np.empty(steps)
 
         wobbles = self.cycloid.params.draw_rot_per_wobble()**-1
         wobbles_per_step = wobbles/steps
@@ -35,7 +36,7 @@ class Cycloid_Drawer:
             points_x[i] = point[0]
             points_y[i] = point[1]
     
-        return [points_x, points_y]
+        return vert([points_x, points_y])
         
     def get_normal(self, draw_wobbles = 0, input_wobbles = 0, twist = None):
         try:

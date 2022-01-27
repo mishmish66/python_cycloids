@@ -1,5 +1,6 @@
 from src.utils.math_utils import *
 import sympy as sp
+from sympy.logic.boolalg import (Not, Xor)
 
 class Cycloid_Sym:
     def __init__(self, cycloid_params):
@@ -14,20 +15,29 @@ class Cycloid_Sym:
         rotation_pos = sp.MatMul(get_rot_mat(draw_wobbles*2*sp.pi * self.params.draw_rot_per_wobble() + self.params.offset_angle + twist), sp.Matrix([self.params.pinwheel_r, 0]))
         return center_pos + wobble_pos + rotation_pos
     
-    def get_edge_point_from_wobbles(self, draw_wobbles, input_wobbles, twist, normal = None):
+    def get_edge_point_from_wobbles(self, draw_wobbles, input_wobbles, twist):
+        normal_vec = self.get_normal_from_wobbles(draw_wobbles, input_wobbles, twist)
         center = self.get_wobble_center(input_wobbles)
         point = self.get_point_from_wobbles(draw_wobbles, input_wobbles, twist)
 
-        v1 = point + normal * self.params.pin_r
-        v1 = sp.simplify(v1)
+        vec1 = point + normal_vec * self.params.pin_r
 
-        v2 = point - normal * self.params.pin_r
-        v2 = sp.simplify(v2)
+        vec2 = point - normal_vec * self.params.pin_r
 
-        d1 = vectors_distance(v1, center)
-        d2 = vectors_distance(v2, center)
+        dvec1 = vec1-center
+        dvec2 = vec2-center
 
-        return sp.Piecewise((v1, d1 > d2), (v2, True))
+        d1 = vector_magnitude(dvec1)
+        d2 = vector_magnitude(dvec2)
+
+        cond = d1 > d2
+
+        cond = sp.Piecewise((Not(cond), self.params.inverted), (cond, True))
+
+        x = sp.Piecewise((vec1[0], cond), (vec2[0], True))
+        y = sp.Piecewise((vec1[1], cond), (vec2[1], True))
+
+        return sp.Matrix([x, y])
 
     def get_normal_from_wobbles(self, draw_wobbles, input_wobbles, twist):
 
