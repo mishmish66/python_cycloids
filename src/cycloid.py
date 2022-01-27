@@ -20,22 +20,4 @@ class Cycloid:
     
     def get_edge_point_from_wobbles(self, draw_wobbles, input_wobbles, twist):
         p = self.params
-        return self.imported_funcs["get_edge_from_wobbles"](draw_wobbles, p.eccentricity, input_wobbles, p.offset_angle, p.pin_count, p.pin_r, p.pinwheel_r, p.tooth_dif, twist)
-    
-#    def get_edge_point_from_wobbles(self, draw_wobbles, input_wobbles, twist):
-#        center_pos = to_np(self.get_wobble_center(input_wobbles))
-#        point = to_np(self.get_point_from_wobbles(draw_wobbles, input_wobbles, twist))
-#        normal = to_np(self.get_normal_from_wobbles(draw_wobbles, twist))
-
-#        p1 = point + normal * self.params.pin_r
-#        p2 = point - normal * self.params.pin_r
-
-#        cond = np_vec_dist(p1, center_pos) < np_vec_dist(p2, center_pos)
-        
-#        if self.params.inverted:
-#            cond = not cond
-
-#        if cond:
-#            return p1
-#        else:
-#            return p2
+        return self.imported_funcs["get_edge_from_wobbles"](draw_wobbles, p.eccentricity, input_wobbles, p.internal, p.offset_angle, p.pin_count, p.pin_r, p.pinwheel_r, p.tooth_dif, twist)

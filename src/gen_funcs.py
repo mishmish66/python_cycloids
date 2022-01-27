@@ -13,11 +13,11 @@ def gen_funcs():
     code_gen = FCodeGen('get_cycloid_params')#, preprocessor_statements=["#define M_PI 3.14159265358979323846", "#define pi 3.14159265358979323846", "#include <math.h>"])
     code_wrapper = F2PyCodeWrapper(code_gen, "gen")#CythonCodeWrapper(code_gen, "gen")
 
-    pin_count, tooth_dif, pinwheel_r, pin_r, eccentricity, offset_angle = sp.symbols('pin_count tooth_dif pinwheel_r pin_r eccentricity offset_angle')
-    inverted = sp.Symbol('inverted', bool=True)
+    pin_count, tooth_dif, pinwheel_r, pin_r, eccentricity, offset_angle, internal = sp.symbols('pin_count tooth_dif pinwheel_r pin_r eccentricity offset_angle internal')
+    #internal = sp.Symbol('internal', bool=True)
     draw_wobbles, input_wobbles, twist = sp.symbols('draw_wobbles input_wobbles twist')
 
-    cycloid_params = Cycloid_Params(pin_count, tooth_dif, pinwheel_r, pin_r, eccentricity, offset_angle, inverted)
+    cycloid_params = Cycloid_Params(pin_count, tooth_dif, pinwheel_r, pin_r, eccentricity, offset_angle, internal)
     args = cycloid_params.generate_param_array()
     args = np.append(args, (draw_wobbles, input_wobbles, twist))
 

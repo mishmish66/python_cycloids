@@ -30,9 +30,9 @@ class Cycloid_Sym:
         d1 = vector_magnitude(dvec1)
         d2 = vector_magnitude(dvec2)
 
-        cond = d1 > d2
+        cmp = sp.GreaterThan(d2, d1)
 
-        cond = sp.Piecewise((Not(cond), self.params.inverted), (cond, True))
+        cond = Xor(cmp, self.params.internal > 0)
 
         x = sp.Piecewise((vec1[0], cond), (vec2[0], True))
         y = sp.Piecewise((vec1[1], cond), (vec2[1], True))

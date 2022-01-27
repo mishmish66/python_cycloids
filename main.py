@@ -12,7 +12,7 @@ eccentricity = 0.1
 
 
 
-cp = Cycloid_Params(pins, tooth_dif, pinwheel_r, pin_r, eccentricity, offset_angle=0, inverted = False)
+cp = Cycloid_Params(pins, tooth_dif, pinwheel_r, pin_r, eccentricity, offset_angle=0, internal = False)
 
 c = Cycloid(cp)
 
