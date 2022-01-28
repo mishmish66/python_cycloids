@@ -4,7 +4,7 @@ from src.cycloid_animator import Cycloid_Animator
 from src.cycloid import Cycloid
 from src.cycloid_params import Cycloid_Params
 
-tooth_dif = 1
+tooth_dif = -1
 pins = 6
 pinwheel_r = 1
 pin_r = 0.1
@@ -12,7 +12,7 @@ eccentricity = 0.1
 
 
 
-cp = Cycloid_Params(pins, tooth_dif, pinwheel_r, pin_r, eccentricity, offset_angle=0, internal = True)
+cp = Cycloid_Params(pins, tooth_dif, pinwheel_r, pin_r, eccentricity, offset_angle=0, internal = False)
 
 c = Cycloid(cp)
 

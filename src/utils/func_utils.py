@@ -22,9 +22,12 @@ def funcs_need_reloading():
         gen_mtime = gen.stat().st_mtime
     except(FileNotFoundError):
         return True
-
-    src_mtime = src.stat().st_mtime
-    return gen_mtime < src_mtime
+    
+    for file in src.iterdir():
+        if file.stat().st_mtime > gen_mtime:
+            return True
+            
+    return False
 
 def get_gen_folder():
     return Path(os.path.realpath(__file__)).parents[2].joinpath("gen")

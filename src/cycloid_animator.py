@@ -3,6 +3,7 @@ import math
 import matplotlib as plt
 from matplotlib import animation
 from matplotlib import patches
+from src.utils.math_utils import *
 
 class Cycloid_Animator:
     def __init__(self, drawer, starting_wobbles = 0, wobble_step = 0.01, ending_wobbles = None):
@@ -27,27 +28,34 @@ class Cycloid_Animator:
 
     def get_arrow_vals_temporal(self):
         steps = self.get_steps()
-        base_points = np.empty([steps, 2])
-        vector_vals = np.empty([steps, 2])
+
+        arrows = np.empty([steps, 2, 2])
+
+        p = self.drawer.cycloid.params
 
         for step in range(0, steps):
-            base_points[step] = self.drawer.get_point(0, step*self.wobble_step)
-            vector_vals[step] = self.drawer.get_normal(0, step*self.wobble_step)
+            in_wobbles = step*self.wobble_step
+            wob = self.drawer.cycloid.get_nearest_starting_point_wobs(in_wobbles, self.drawer.get_twist(in_wobbles), vert([p.pinwheel_r, 0]))
+
+            arrows[step][0] = self.drawer.get_point(wob, step*self.wobble_step)
+            arrows[step][1] = self.drawer.get_normal(wob, step*self.wobble_step)
         
-        return (base_points, vector_vals)
+        return arrows
 
 
     def animate(self, fig, ax):
         points = self.get_cycloid_points_temporal()
         arrow_vals = self.get_arrow_vals_temporal()
 
+        p = self.drawer.cycloid.params
+
         line, = ax.plot([], [], lw = 2)
-        angle_per_circle = self.drawer.cycloid.params.pin_count**-1 *2*math.pi
+        angle_per_circle = p.pin_count**-1 *2*math.pi
 
         objects = [line]
 
         for i in range(0, self.drawer.cycloid.params.pin_count):
-            objects.append(plt.patches.Circle((math.cos(angle_per_circle*i), math.sin(angle_per_circle*i)), radius=self.drawer.cycloid.params.pin_r))
+            objects.append(plt.patches.Circle((p.pinwheel_r*math.cos(angle_per_circle*i), p.pinwheel_r*math.sin(angle_per_circle*i)), radius=p.pin_r))
             ax.add_artist(objects[-1])
             
         def init():
@@ -57,11 +65,9 @@ class Cycloid_Animator:
         def animate(step):
             this_line = points[step]
             line.set_data(this_line[0], this_line[1])
+            arrow_val = arrow_vals[step]
 
-            arrow_base = arrow_vals[0][step]
-            arrow_vec = arrow_vals[1][step]
-
-            arrow = ax.quiver(arrow_base[0], arrow_base[1], arrow_vec[0], arrow_vec[1])
+            arrow = ax.quiver(arrow_val[0][0], arrow_val[0][1], arrow_val[1][0], arrow_val[1][1])
 
             return np.append(objects, arrow)
         

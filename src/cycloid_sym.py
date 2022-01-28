@@ -42,7 +42,6 @@ class Cycloid_Sym:
     def get_normal_from_wobbles(self, draw_wobbles, input_wobbles, twist):
 
         point = self.get_point_from_wobbles(draw_wobbles, input_wobbles, twist)
-        point = sp.simplify(point)
 
         vel = sp.diff(point, draw_wobbles)
         tan = vector_normalize(vel)
@@ -51,3 +50,9 @@ class Cycloid_Sym:
         norm = vector_normalize(curv)
 
         return norm
+    
+    def get_vel_from_wobbles(self, draw_wobbles, input_wobbles, twist):
+        point = self.get_point_from_wobbles(draw_wobbles, input_wobbles, twist)
+
+        vel = sp.diff(point, draw_wobbles)
+        return vel

@@ -36,3 +36,8 @@ def gen_funcs():
 
     get_edge_routine = code_gen.routine('get_edge_from_wobbles', expr=get_edge_expr)
     code_wrapper.wrap_code(get_edge_routine)
+
+    get_vel_expr = cycloid.get_vel_from_wobbles(draw_wobbles, input_wobbles, twist)
+
+    get_vel_routine = code_gen.routine('get_vel_from_wobbles', expr=get_vel_expr)
+    code_wrapper.wrap_code(get_vel_routine)
