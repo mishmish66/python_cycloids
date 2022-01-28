@@ -29,33 +29,38 @@ class Cycloid_Animator:
     def get_arrow_vals_temporal(self):
         steps = self.get_steps()
 
-        arrows = np.empty([steps, 2, 2])
-
         p = self.drawer.cycloid.params
+
+        arrows = np.empty([steps, p.pin_count, 2, 2])
 
         for step in range(0, steps):
             in_wobbles = step*self.wobble_step
-            wob = self.drawer.cycloid.get_nearest_edge_point_wobs(in_wobbles, self.drawer.get_twist(in_wobbles), vert([p.pinwheel_r, 0]))
+            pin_points = self.drawer.get_pin_pos_arr()
 
-            arrows[step][0] = self.drawer.get_point(wob, step*self.wobble_step)
-            arrows[step][1] = self.drawer.get_normal(wob, step*self.wobble_step)
+            for n in range(0, p.pin_count):
+                wob = self.drawer.cycloid.get_nearest_edge_point_wobs(in_wobbles, self.drawer.get_twist(in_wobbles), pin_points[n], max_depth=10)
+
+            
+                arrows[step][n][0] = self.drawer.get_point(wob, step*self.wobble_step)
+                arrows[step][n][1] = self.drawer.get_normal(wob, step*self.wobble_step)
         
         return arrows
 
 
     def animate(self, fig, ax):
         points = self.get_cycloid_points_temporal()
-        arrow_vals = self.get_arrow_vals_temporal()
+        arrow_vals_t = self.get_arrow_vals_temporal()
 
         p = self.drawer.cycloid.params
 
         line, = ax.plot([], [], lw = 2)
-        angle_per_circle = p.pin_count**-1 *2*math.pi
 
         objects = [line]
 
-        for i in range(0, self.drawer.cycloid.params.pin_count):
-            objects.append(plt.patches.Circle((p.pinwheel_r*math.cos(angle_per_circle*i), p.pinwheel_r*math.sin(angle_per_circle*i)), radius=p.pin_r))
+        pin_pos_arr = self.drawer.get_pin_pos_arr()
+
+        for pin_pos in pin_pos_arr: 
+            objects.append(plt.patches.Circle((pin_pos[0], pin_pos[1]), p.pin_r))
             ax.add_artist(objects[-1])
             
         def init():
@@ -65,10 +70,13 @@ class Cycloid_Animator:
         def animate(step):
             this_line = points[step]
             line.set_data(this_line[0], this_line[1])
-            arrow_val = arrow_vals[step]
+            arrow_vals = arrow_vals_t[step]
+            arrows = [None] * self.drawer.cycloid.params.pin_count
 
-            arrow = ax.quiver(arrow_val[0][0], arrow_val[0][1], arrow_val[1][0], arrow_val[1][1])
+            for n in range(0, self.drawer.cycloid.params.pin_count):
+                arrow_val = arrow_vals[n]
+                arrows[n] = ax.quiver(arrow_val[0][0], arrow_val[0][1], arrow_val[1][0], arrow_val[1][1])
 
-            return np.append(objects, arrow)
+            return np.append(objects, arrows)
         
-        return animation.FuncAnimation(fig, animate, init_func=init, blit = True, frames = self.get_steps(), interval=1)
+        return animation.FuncAnimation(fig, animate, init_func=init, blit = True, frames = self.get_steps(), interval=1, repeat=False)

@@ -12,7 +12,8 @@ class Cycloid_Drawer:
         ax.plot(points[0], points[1])
 
     def get_twist(self, input_wobbles):
-        return self.cycloid.params.offset_angle - input_wobbles*self.cycloid.params.get_rot_per_wobble()*2*math.pi
+        offset = self.cycloid.params.offset_angle/2/np.pi * self.cycloid.params.draw_rot_per_wobble()**-1 / self.cycloid.params.get_rot_per_wobble()**-1
+        return (offset - input_wobbles)*self.cycloid.params.get_rot_per_wobble()*2*math.pi
 
     def get_point(self, draw_wobbles = 0, input_wobbles = 0, twist = None):
         if twist == None:
@@ -45,3 +46,11 @@ class Cycloid_Drawer:
 
         return vector_unwrap(vec)
 
+    def get_pin_pos_arr(self):
+        p = self.cycloid.params
+        angle_per_pin = p.pin_count**-1 *2*math.pi
+        pins = np.empty([p.pin_count, 2, 1])
+
+        for i in range(0, p.pin_count):
+            pins[i] = np.matmul(get_np_rot_mat(i*angle_per_pin + p.offset_angle), vert([p.pinwheel_r, 0]))
+        return pins

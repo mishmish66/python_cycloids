@@ -1,4 +1,6 @@
+from os import path
 import numpy as np
+from sympy import parallel_poly_from_expr
 from src.utils.func_utils import get_funcs
 from src.utils.math_utils import (np_mag, to_np, np_vec_dist, get_np_rot_mat, vert)
 
@@ -32,7 +34,7 @@ class Cycloid:
         wobbles_per_rot = int((self.params.draw_rot_per_wobble())**-1)
         wob_step = wobbles_per_rot/teeth
 
-        wobs = np.empty([teeth, 2])
+        wobs = np.empty([teeth])
         dists = np.empty([teeth])
 
         for tooth in range(0, teeth):
@@ -42,9 +44,9 @@ class Cycloid:
             dists[tooth] = np_vec_dist(vec, point)
         
         min_dist = dists.min()
-        return wobs[np.where(dists == min_dist)]
+        return wobs[np.where(dists == min_dist)[0]]
     
-    def get_nearest_edge_point_wobs(self, input_wobbles, twist, point, target_dist=None, target_err = 0.0001, max_depth = 25):
+    def get_nearest_edge_point_wobs(self, input_wobbles, twist, point, target_dist=None, target_err = 0.0001, max_depth = 10):
         if target_dist == None:
             target_dist = self.params.pin_r
 
@@ -55,16 +57,16 @@ class Cycloid:
 
         while(err == None or iters < max_depth):
             iters += 1
-            err_vec = point - self.get_point_from_wobbles(wob, input_wobbles, twist)
+            err_vec = point - self.get_edge_point_from_wobbles(wob, input_wobbles, twist)
             err = np_mag(err_vec)
 
-            if err < target_err:
+            if err < target_dist + target_err:
                 break
 
             self.get_vel_from_wobbles(wob, input_wobbles, twist)
 
             vel = self.get_vel_from_wobbles(wob, input_wobbles, twist)
-            wob = wob + np.dot(vel, err_vec)/self.params.teeth()
+            wob = wob + np.dot(vel, err_vec)/max(iters, self.params.pin_count)**(1/5)
         
         return wob
         

@@ -55,4 +55,5 @@ class Cycloid_Sym:
         point = self.get_point_from_wobbles(draw_wobbles, input_wobbles, twist)
 
         vel = sp.diff(point, draw_wobbles)
-        return vel
+        tan = vector_normalize(vel)
+        return tan

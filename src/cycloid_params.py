@@ -20,4 +20,4 @@ class Cycloid_Params:
         return np.array([self.pin_count, self.tooth_dif, self.pinwheel_r, self.pin_r, self.eccentricity, self.offset_angle, self.internal])
     
     def teeth(self):
-        return abs(int((self.get_rot_per_wobble())**-1))
+        return self.pin_count + self.tooth_dif
