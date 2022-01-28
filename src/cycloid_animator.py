@@ -35,7 +35,7 @@ class Cycloid_Animator:
 
         for step in range(0, steps):
             in_wobbles = step*self.wobble_step
-            wob = self.drawer.cycloid.get_nearest_starting_point_wobs(in_wobbles, self.drawer.get_twist(in_wobbles), vert([p.pinwheel_r, 0]))
+            wob = self.drawer.cycloid.get_nearest_edge_point_wobs(in_wobbles, self.drawer.get_twist(in_wobbles), vert([p.pinwheel_r, 0]))
 
             arrows[step][0] = self.drawer.get_point(wob, step*self.wobble_step)
             arrows[step][1] = self.drawer.get_normal(wob, step*self.wobble_step)

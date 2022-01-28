@@ -18,3 +18,6 @@ class Cycloid_Params:
     
     def generate_param_array(self):
         return np.array([self.pin_count, self.tooth_dif, self.pinwheel_r, self.pin_r, self.eccentricity, self.offset_angle, self.internal])
+    
+    def teeth(self):
+        return int((self.get_rot_per_wobble())**-1)
