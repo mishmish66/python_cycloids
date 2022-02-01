@@ -1,6 +1,8 @@
 from asyncore import write
 import code
 from re import sub
+
+from matplotlib.pyplot import draw
 from src.cycloid_params import Cycloid_Params
 from src.cycloid_sym import Cycloid_Sym
 import sympy as sp
@@ -9,6 +11,8 @@ from sympy.utilities.codegen import *
 from sympy.utilities.autowrap import *
 
 def gen_funcs():
+
+    print("generating funcs")
 
     code_gen = FCodeGen('get_cycloid_params')
     code_wrapper = F2PyCodeWrapper(code_gen, "gen")
@@ -37,9 +41,16 @@ def gen_funcs():
     get_edge_routine = code_gen.routine('get_edge_from_wobbles', expr=get_edge_expr)
     code_wrapper.wrap_code(get_edge_routine)
 
-    get_vel_expr = cycloid.get_vel_from_wobbles(draw_wobbles, input_wobbles, twist)
+    get_draw_vel_expr = cycloid.get_draw_vel_from_wobbles(draw_wobbles, input_wobbles, twist)
 
-    get_vel_routine = code_gen.routine('get_vel_from_wobbles', expr=get_vel_expr)
-    code_wrapper.wrap_code(get_vel_routine)
+    get_draw_vel_routine = code_gen.routine('get_draw_vel_from_wobbles', expr=get_draw_vel_expr)
+    code_wrapper.wrap_code(get_draw_vel_routine)
+
+    get_point_vel_expr = cycloid.get_point_vel_from_wobbles(draw_wobbles, input_wobbles, twist)
+
+    get_point_vel_routine = code_gen.routine('get_point_vel_from_wobbles', expr=get_point_vel_expr)
+    code_wrapper.wrap_code(get_point_vel_routine)
+
+    print("funcs generated")
 
     

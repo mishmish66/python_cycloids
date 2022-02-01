@@ -1,6 +1,7 @@
+from matplotlib.pyplot import axes
 import numpy as np
 import math
-import matplotlib as plt
+import matplotlib.pyplot as plt
 from matplotlib import animation
 from matplotlib import patches
 from src.utils.math_utils import *
@@ -22,6 +23,7 @@ class Cycloid_Animator:
         points = np.empty([steps, 2, self.drawer.steps])
 
         for step in range(0, steps):
+            print("getting edge vals step " + str(step) + "/" + str(steps))
             points[step] = self.drawer.get_points(step*self.wobble_step, self.drawer.steps)
 
         return points
@@ -31,18 +33,38 @@ class Cycloid_Animator:
 
         p = self.drawer.cycloid.params
 
-        arrows = np.empty([steps, p.pin_count, 2, 2])
+        arrows = np.zeros([steps, p.pin_count, 2, 2])
+        wasted_forces = np.zeros(steps)
 
         for step in range(0, steps):
+            print("getting arrow vals step " + str(step) + "/" + str(steps))
+            c = self.drawer.cycloid
+
             in_wobbles = step*self.wobble_step
             pin_points = self.drawer.get_pin_pos_arr()
 
-            for n in range(0, p.pin_count):
-                wob = self.drawer.cycloid.get_nearest_edge_point_wobs(in_wobbles, self.drawer.get_twist(in_wobbles), pin_points[n], max_depth=10)
+            point_norms = np.zeros([p.pin_count, 2, 2])
 
-            
-                arrows[step][n][0] = self.drawer.get_point(wob, step*self.wobble_step)
-                arrows[step][n][1] = self.drawer.get_normal(wob, step*self.wobble_step)
+            center = c.get_wobble_center(in_wobbles)
+
+            twist = c.get_twist(in_wobbles)
+
+            vel = c.get_vel_from_wobbles(in_wobbles, center)
+
+            for n in range(0, p.pin_count):
+                point_draw_wob = c.get_nearest_edge_point_wobs(in_wobbles, twist, pin_points[n], max_depth=10)
+
+                point = self.drawer.get_point(point_draw_wob, in_wobbles)
+                norm = c.get_outward_normal(point_draw_wob, twist, center, vert(point))
+
+                point_norms[n][0] = hor(point)
+                point_norms[n][1] = hor(norm)
+
+            arrows[step] = c.resolve_forces(point_norms, in_wobbles)
+
+            arrow = arrows[step]
+            #np.dot(hor(np_normalize(vert(arrow[0]))), arrow[1])
+
         
         return arrows
 
@@ -50,6 +72,7 @@ class Cycloid_Animator:
     def animate(self, fig, ax):
         points = self.get_cycloid_points_temporal()
         arrow_vals_t = self.get_arrow_vals_temporal()
+        steps = self.get_steps()
 
         p = self.drawer.cycloid.params
 
@@ -59,8 +82,8 @@ class Cycloid_Animator:
 
         pin_pos_arr = self.drawer.get_pin_pos_arr()
 
-        for pin_pos in pin_pos_arr: 
-            objects.append(plt.patches.Circle((pin_pos[0], pin_pos[1]), p.pin_r))
+        for pin_pos in pin_pos_arr:
+            objects.append(patches.Circle((pin_pos[0], pin_pos[1]), p.pin_r))
             ax.add_artist(objects[-1])
             
         def init():
@@ -71,12 +94,13 @@ class Cycloid_Animator:
             this_line = points[step]
             line.set_data(this_line[0], this_line[1])
             arrow_vals = arrow_vals_t[step]
-            arrows = [None] * self.drawer.cycloid.params.pin_count
 
-            for n in range(0, self.drawer.cycloid.params.pin_count):
-                arrow_val = arrow_vals[n]
-                arrows[n] = ax.quiver(arrow_val[0][0], arrow_val[0][1], arrow_val[1][0], arrow_val[1][1])
+            arrows = np.array([])
 
+            for n in range(0, p.pin_count):
+                arrows = np.append(arrows, ax.quiver(arrow_vals[n][0][0], arrow_vals[n][0][1], arrow_vals[n][1][0], arrow_vals[n][1][1], scale = 1, scale_units = 'xy', width = 0.005))
+
+            print("frame: " + str(step) + "/" + str(steps))
             return np.append(objects, arrows)
         
         return animation.FuncAnimation(fig, animate, init_func=init, blit = True, frames = self.get_steps(), interval=1, repeat=False)

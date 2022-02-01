@@ -1,6 +1,7 @@
+from collections import _OrderedDictItemsView
 from src.utils.math_utils import *
 import sympy as sp
-from sympy.logic.boolalg import (Not, Xor)
+from sympy.logic.boolalg import Xor
 
 class Cycloid_Sym:
     def __init__(self, cycloid_params):
@@ -51,9 +52,15 @@ class Cycloid_Sym:
 
         return norm
     
-    def get_vel_from_wobbles(self, draw_wobbles, input_wobbles, twist):
+    def get_draw_vel_from_wobbles(self, draw_wobbles, input_wobbles, twist):
         point = self.get_point_from_wobbles(draw_wobbles, input_wobbles, twist)
 
         vel = sp.diff(point, draw_wobbles)
         tan = vector_normalize(vel)
         return tan
+    
+    def get_point_vel_from_wobbles(self, draw_wobbles, input_wobbles, twist):
+        point = self.get_point_from_wobbles(draw_wobbles, input_wobbles, twist)
+        
+        vel = sp.diff(point, input_wobbles)
+        return vel

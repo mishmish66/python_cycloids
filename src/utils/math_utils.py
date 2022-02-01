@@ -33,6 +33,9 @@ def np_mag(v):
     mag_sq = np.dot(np.transpose(v), v)
     return np.sqrt(mag_sq)
 
+def np_normalize(v):
+    return v/np_mag(v)
+
 def np_vec_dist(v1, v2):
     return np_mag(v1 - v2)
 
@@ -41,3 +44,6 @@ def toggle(bool):
         return sp.true
     else:
         return sp.false
+
+def hor(vec):
+    return np.reshape(vec, 2)
