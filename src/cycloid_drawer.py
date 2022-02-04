@@ -12,8 +12,7 @@ class Cycloid_Drawer:
         ax.plot(points[0], points[1])
 
     def get_twist(self, input_wobbles):
-        offset = self.cycloid.params.offset_angle/2/np.pi * self.cycloid.params.draw_rot_per_wobble()**-1 / self.cycloid.params.get_rot_per_wobble()**-1
-        return (offset - input_wobbles)*self.cycloid.params.get_rot_per_wobble()*2*math.pi
+        return self.cycloid.get_twist(input_wobbles)
 
     def get_point(self, draw_wobbles = 0, input_wobbles = 0, twist = None):
         if twist == None:

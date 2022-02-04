@@ -11,20 +11,25 @@ class Cycloid:
 
     def get_twist(self, input_wobbles):
         p = self.params
-        offset = p.offset_angle/2/np.pi * p.draw_rot_per_wobble()**-1 / p.get_rot_per_wobble()**-1
-        return (offset - input_wobbles)*p.get_rot_per_wobble()*2*np.pi
+        offset = p.offset_angle / p.draw_rot_per_wobble() * p.get_rot_per_wobble()/2
+        if p.internal:
+            offset *= -1
+        return offset - input_wobbles*p.get_rot_per_wobble()*2*np.pi
     
     def get_wobble_center(self, input_wobbles):
         return np.matmul(get_np_rot_mat(input_wobbles*2*np.pi), vert([self.params.eccentricity, 0]))
     
     def resolve_forces(self, disp_arrows, wob, center = None):
-        if center == None:
-            center = self.get_wobble_center(wob)
+        #if center == None:
+        #    center = self.get_wobble_center(wob)
         center_vel = hor(self.get_vel_from_wobbles(wob, center))
         center = hor(center)
 
         contributions = np.fromiter((np.dot(center_vel, arrow[1]) for arrow in disp_arrows), dtype=disp_arrows.dtype)
-        contributions = np.fromiter((np.max([rat, 0]) for rat in contributions), dtype=disp_arrows.dtype)
+        if self.params.internal:
+            contributions = np.fromiter((np.max([-rat, 0]) for rat in contributions), dtype=disp_arrows.dtype)
+        else:
+            contributions = np.fromiter((np.max([rat, 0]) for rat in contributions), dtype=disp_arrows.dtype)
 
         contributions = contributions/np.sum(contributions)
 
@@ -32,8 +37,6 @@ class Cycloid:
         for n in range(0, len(disp_arrows)):
             arrow = disp_arrows[n]
             contribution = contributions[n]
-            #cross = np.cross(np_normalize(arrow[0]), np_normalize(arrow[1]))
-            #resolved[n] = [arrow[0], arrow[1] * contribution/cross]
             resolved[n] = [arrow[0], contribution * arrow[1]]
 
         return resolved

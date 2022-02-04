@@ -60,18 +60,24 @@ class Cycloid_Animator:
                 point_norms[n][0] = hor(point)
                 point_norms[n][1] = hor(norm)
 
-            arrows[step] = c.resolve_forces(point_norms, in_wobbles)
+            arrows[step] = c.resolve_forces(point_norms, in_wobbles, center)
 
-            arrow = arrows[step]
-            #np.dot(hor(np_normalize(vert(arrow[0]))), arrow[1])
+            step_arrows = arrows[step]
+
+            step_mags = np.fromiter((np_mag(arrow[1]) for arrow in step_arrows), dtype=step_arrows.dtype)
+            step_wasted = np.fromiter((np.dot(hor(np_normalize(vert(arrow[0]))), arrow[1]) for arrow in step_arrows), dtype=step_arrows.dtype)
+            step_waste = np.sum(step_wasted)
+            step_force = np.sum(step_mags)
+            wasted_forces[step] = step_waste/step_force
 
         
-        return arrows
+        return (arrows, np.average(wasted_forces))
 
 
     def animate(self, fig, ax):
         points = self.get_cycloid_points_temporal()
-        arrow_vals_t = self.get_arrow_vals_temporal()
+        arrow_vals_t, waste = self.get_arrow_vals_temporal()
+        print("WASTED FORCE: " + str(waste))
         steps = self.get_steps()
 
         p = self.drawer.cycloid.params
@@ -88,6 +94,7 @@ class Cycloid_Animator:
             
         def init():
             line.set_data([], [])
+            objects.append(plt.text(-0.25, -1.25, "Wasted Force: " + str(waste)))
             return objects
 
         def animate(step):
