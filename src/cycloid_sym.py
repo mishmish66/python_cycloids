@@ -12,8 +12,9 @@ class Cycloid_Sym:
 
     def get_point_from_wobbles(self, draw_wobbles, input_wobbles, twist):
         center_pos = self.get_wobble_center(input_wobbles)
-        wobble_pos = sp.MatMul(get_rot_mat(draw_wobbles*2*sp.pi + self.params.offset_angle + twist), sp.Matrix([-self.params.eccentricity, 0]))
-        rotation_pos = sp.MatMul(get_rot_mat(draw_wobbles*2*sp.pi * self.params.draw_rot_per_wobble() + self.params.offset_angle + twist), sp.Matrix([self.params.pinwheel_r, 0]))
+        offset = self.params.offset_angle / self.params.draw_rot_per_wobble() * self.params.get_rot_per_wobble()
+        wobble_pos = sp.MatMul(get_rot_mat(draw_wobbles*2*sp.pi + offset + twist), sp.Matrix([-self.params.eccentricity, 0]))
+        rotation_pos = sp.MatMul(get_rot_mat(draw_wobbles*2*sp.pi * self.params.draw_rot_per_wobble() + offset + twist), sp.Matrix([self.params.pinwheel_r, 0]))
         return center_pos + wobble_pos + rotation_pos
     
     def get_edge_point_from_wobbles(self, draw_wobbles, input_wobbles, twist):

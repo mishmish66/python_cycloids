@@ -9,14 +9,14 @@ import numpy as np
 
 scale = 0.005
 
-tooth_dif_1 = -1
-pins_1 = 8
+tooth_dif_1 = 1
+pins_1 = 4
 pinwheel_r_1 = 150*scale
 pin_r_1 = 15*scale
 
 tooth_dif_2 = 1
-pins_2 = 4
-pinwheel_r_2 = 60*scale
+pins_2 = 5
+pinwheel_r_2 = 80*scale
 pin_r_2 = 15*scale
 eccentricity = 10*scale
 save = False
@@ -37,7 +37,7 @@ cd1 = Cycloid_Drawer(c1)
 cd2 = Cycloid_Drawer(c2)
 
 ca = Double_Cycloid_Animator(cd1, cd2, wobble_step=0.01)
-#ca = Cycloid_Animator(cd1, wobble_step=0.01)
+#ca = Cycloid_Animator(cd2, wobble_step=0.01)
 
 ani = ca.animate(fig, ax)
 

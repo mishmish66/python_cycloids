@@ -11,10 +11,9 @@ class Cycloid:
 
     def get_twist(self, input_wobbles):
         p = self.params
-        offset = p.offset_angle / p.draw_rot_per_wobble() * p.get_rot_per_wobble()/2
-        if p.internal:
-            offset *= -1
-        return offset - input_wobbles*p.get_rot_per_wobble()*2*np.pi
+        #offset = p.offset_angle / p.draw_rot_per_wobble() * p.get_rot_per_wobble()
+        #return offset - input_wobbles*p.get_rot_per_wobble()*2*np.pi
+        return -input_wobbles*p.get_rot_per_wobble()*2*np.pi
     
     def get_wobble_center(self, input_wobbles):
         return np.matmul(get_np_rot_mat(input_wobbles*2*np.pi), vert([self.params.eccentricity, 0]))

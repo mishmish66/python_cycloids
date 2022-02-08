@@ -17,7 +17,8 @@ class Double_Cycloid_Animator:
         self.ending_wobbles = ending_wobbles
         p1 = drawer1.cycloid.params
         p2 = drawer2.cycloid.params
-        self.overall_ratio = p1.get_rot_per_wobble() / (p2.get_rot_per_wobble() + p1.get_rot_per_wobble())
+        self.overall_ratio = (1 - p1.draw_rot_per_wobble())/(p2.draw_rot_per_wobble() - p1.draw_rot_per_wobble())
+        pass
     
     def get_steps(self):
         return int((self.ending_wobbles - self.starting_wobbles)/self.wobble_step)
@@ -26,24 +27,26 @@ class Double_Cycloid_Animator:
         steps = self.get_steps()
         points1 = np.empty([steps, 2, self.drawer1.steps])
         points2 = np.empty([steps, 2, self.drawer2.steps])
-        cycloid2_twists = np.empty(steps)
+        cycloid2_offsets = np.empty(steps)
 
         for step in range(0, steps):
             print("getting edge vals step " + str(step) + "/" + str(steps))
-            cycloid2_offset = self.get_cycloid2_offset(step*self.wobble_step)
+            wobbles = step * self.wobble_step
+
+            cycloid2_offset = self.get_cycloid2_offset(wobbles)
             self.drawer2.cycloid.params.offset_angle = cycloid2_offset
 
-            c1_points = self.drawer1.get_points(step*self.wobble_step, self.drawer1.steps)
-            c2_points =  self.drawer2.get_points(input_wobbles = -step*self.wobble_step, steps = self.drawer1.steps)
+            c1_points = self.drawer1.get_points(wobbles, self.drawer1.steps)
+            c2_points =  self.drawer2.get_points(wobbles, self.drawer1.steps)
             points1[step] = c1_points
             points2[step] = c2_points
-            cycloid2_twists[step] = cycloid2_offset
+            cycloid2_offsets[step] = cycloid2_offset
 
-        return points1, points2, cycloid2_twists
+        return points1, points2, cycloid2_offsets
     
     def get_cycloid2_offset(self, input_wobbles):
-        return input_wobbles/self.overall_ratio
-
+        return input_wobbles * 2 * np.pi /self.overall_ratio
+    
     def get_arrow_vals_temporal(self):
         steps = self.get_steps()
 
@@ -59,7 +62,8 @@ class Double_Cycloid_Animator:
             print("getting arrow vals step " + str(step) + "/" + str(steps))
 
             in_wobbles = step*self.wobble_step
-            pin_points = self.drawer1.get_pin_pos_arr()
+            pin_points_1 = self.drawer1.get_pin_pos_arr()
+            pin_points_2 = self.drawer2.get_pin_pos_arr()
 
             point_norms = np.zeros([p1.pin_count + p2.pin_count, 2, 2])
 
@@ -69,7 +73,7 @@ class Double_Cycloid_Animator:
             twist2 = self.get_cycloid2_offset(in_wobbles)
 
             for n in range(0, p1.pin_count):
-                point_draw_wob = c1.get_nearest_edge_point_wobs(in_wobbles, twist1, pin_points[n], max_depth=10)
+                point_draw_wob = c1.get_nearest_edge_point_wobs(in_wobbles, twist1, pin_points_1[n], max_depth=10)
 
                 point = self.drawer1.get_point(point_draw_wob, in_wobbles)
                 norm = c1.get_outward_normal(point_draw_wob, twist1, center, vert(point))
@@ -78,7 +82,7 @@ class Double_Cycloid_Animator:
                 point_norms[n][1] = hor(norm)
 
             for n in range(0, p2.pin_count):
-                point_draw_wob = c2.get_nearest_edge_point_wobs(in_wobbles, twist1, pin_points[n], max_depth=10)
+                point_draw_wob = c2.get_nearest_edge_point_wobs(in_wobbles, twist1, pin_points_2[n], max_depth=10)
 
                 point = self.drawer2.get_point(point_draw_wob, in_wobbles)
                 norm = c2.get_outward_normal(point_draw_wob, twist2, center, vert(point))
@@ -102,7 +106,7 @@ class Double_Cycloid_Animator:
 
 
     def animate(self, fig, ax):
-        points1, points2, cycloid2_twists = self.get_cycloid_points_temporal()
+        points1, points2, cycloid2_offsets = self.get_cycloid_points_temporal()
         arrow_vals_t, waste = self.get_arrow_vals_temporal()
         print("WASTED FORCE: " + str(waste))
         steps = self.get_steps()
@@ -131,6 +135,7 @@ class Double_Cycloid_Animator:
         def init():
             line1.set_data([], [])
             line2.set_data([], [])
+            objects.append(plt.text(-0.25, -1.25, "Overall Ratio: " + str(self.overall_ratio)))
             return objects
 
         def animate(step):
@@ -145,7 +150,7 @@ class Double_Cycloid_Animator:
             for n in range(0, p1.pin_count + p2.pin_count):
                 arrows = np.append(arrows, ax.quiver(arrow_vals[n][0][0], arrow_vals[n][0][1], arrow_vals[n][1][0], arrow_vals[n][1][1], scale = 1, scale_units = 'xy', width = 0.005))
             
-            self.drawer2.cycloid.params.offset_angle = cycloid2_twists[step]
+            self.drawer2.cycloid.params.offset_angle = cycloid2_offsets[step]
             pin_pos_arr2 = self.drawer2.get_pin_pos_arr()
 
             for n in range(0, p2.pin_count):
@@ -154,4 +159,4 @@ class Double_Cycloid_Animator:
             print("frame: " + str(step) + "/" + str(steps))
             return np.append(objects, arrows)
         
-        return animation.FuncAnimation(fig, animate, init_func=init, blit = True, frames = self.get_steps(), interval=1, repeat=False)
+        return animation.FuncAnimation(fig, animate, init_func=init, blit = True, frames = self.get_steps(), interval=1, repeat=True)
