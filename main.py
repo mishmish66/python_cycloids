@@ -12,7 +12,7 @@ scale = 0.005
 tooth_dif_1 = 1
 pins_1 = 4
 pinwheel_r_1 = 150*scale
-pin_r_1 = 15*scale
+pin_r_1 = 10*scale
 
 tooth_dif_2 = 1
 pins_2 = 5
@@ -25,7 +25,7 @@ cp1 = Cycloid_Params(pins_1, tooth_dif_1, pinwheel_r_1, pin_r_1,
                     eccentricity, offset_angle=0, internal=False)
 
 cp2 = Cycloid_Params(pins_2, tooth_dif_2, pinwheel_r_2, pin_r_2,
-                    eccentricity, offset_angle=0, internal=True)
+                    eccentricity, offset_angle=100, internal=True)
 
 c1 = Cycloid(cp1)
 c2 = Cycloid(cp2)

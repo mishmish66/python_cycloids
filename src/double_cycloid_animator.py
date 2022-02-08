@@ -62,6 +62,12 @@ class Double_Cycloid_Animator:
             print("getting arrow vals step " + str(step) + "/" + str(steps))
 
             in_wobbles = step*self.wobble_step
+
+            self.drawer2.cycloid.params.offset_angle = self.get_cycloid2_offset(in_wobbles)
+
+            c2 = self.drawer2.cycloid
+            p2 = c2.params
+
             pin_points_1 = self.drawer1.get_pin_pos_arr()
             pin_points_2 = self.drawer2.get_pin_pos_arr()
 
@@ -69,28 +75,27 @@ class Double_Cycloid_Animator:
 
             center = c1.get_wobble_center(in_wobbles)
 
-            twist1 = c1.get_twist(in_wobbles)
-            twist2 = self.get_cycloid2_offset(in_wobbles)
+            twist = c1.get_twist(in_wobbles)
 
             for n in range(0, p1.pin_count):
-                point_draw_wob = c1.get_nearest_edge_point_wobs(in_wobbles, twist1, pin_points_1[n], max_depth=10)
+                point_draw_wob = c1.get_nearest_edge_point_wobs(in_wobbles, pin_points_1[n], twist)
 
                 point = self.drawer1.get_point(point_draw_wob, in_wobbles)
-                norm = c1.get_outward_normal(point_draw_wob, twist1, center, vert(point))
+                norm = c1.get_outward_normal(point_draw_wob, twist, center, vert(point))
 
                 point_norms[n][0] = hor(point)
                 point_norms[n][1] = hor(norm)
 
             for n in range(0, p2.pin_count):
-                point_draw_wob = c2.get_nearest_edge_point_wobs(in_wobbles, twist1, pin_points_2[n], max_depth=10)
+                point_draw_wob = c2.get_nearest_edge_point_wobs(in_wobbles, pin_points_2[n])
 
                 point = self.drawer2.get_point(point_draw_wob, in_wobbles)
-                norm = c2.get_outward_normal(point_draw_wob, twist2, center, vert(point))
+                norm = c2.get_outward_normal(point_draw_wob, twist, center, vert(point))
 
                 point_norms[p1.pin_count + n][0] = hor(point)
                 point_norms[p1.pin_count + n][1] = hor(norm)
 
-            arrows[step][:p1.pin_count] = c1.resolve_forces(point_norms[:p1.pin_count], in_wobbles, center)/self.overall_ratio
+            arrows[step][:p1.pin_count] = c1.resolve_forces(point_norms[:p1.pin_count], in_wobbles, center, 1/self.overall_ratio)
             arrows[step][p1.pin_count:] = c2.resolve_forces(point_norms[p1.pin_count:], in_wobbles, center)
 
             step_arrows = arrows[step]
@@ -148,7 +153,8 @@ class Double_Cycloid_Animator:
             arrows = np.array([])
 
             for n in range(0, p1.pin_count + p2.pin_count):
-                arrows = np.append(arrows, ax.quiver(arrow_vals[n][0][0], arrow_vals[n][0][1], arrow_vals[n][1][0], arrow_vals[n][1][1], scale = 1, scale_units = 'xy', width = 0.005))
+                arrow = arrow_vals[n]
+                arrows = np.append(arrows, ax.quiver(arrow[0][0], arrow[0][1], arrow[1][0], arrow[1][1], scale = 1, scale_units = 'xy', width = 0.005))
             
             self.drawer2.cycloid.params.offset_angle = cycloid2_offsets[step]
             pin_pos_arr2 = self.drawer2.get_pin_pos_arr()

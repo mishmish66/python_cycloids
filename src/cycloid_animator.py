@@ -52,7 +52,7 @@ class Cycloid_Animator:
             vel = c.get_vel_from_wobbles(in_wobbles, center)
 
             for n in range(0, p.pin_count):
-                point_draw_wob = c.get_nearest_edge_point_wobs(in_wobbles, twist, pin_points[n], max_depth=10)
+                point_draw_wob = c.get_nearest_edge_point_wobs(in_wobbles, pin_points[n])
 
                 point = self.drawer.get_point(point_draw_wob, in_wobbles)
                 norm = c.get_outward_normal(point_draw_wob, twist, center, vert(point))
@@ -110,4 +110,4 @@ class Cycloid_Animator:
             print("frame: " + str(step) + "/" + str(steps))
             return np.append(objects, arrows)
         
-        return animation.FuncAnimation(fig, animate, init_func=init, blit = True, frames = self.get_steps(), interval=1, repeat=False)
+        return animation.FuncAnimation(fig, animate, init_func=init, blit = True, frames = self.get_steps(), interval=1, repeat=True)

@@ -11,14 +11,12 @@ class Cycloid:
 
     def get_twist(self, input_wobbles):
         p = self.params
-        #offset = p.offset_angle / p.draw_rot_per_wobble() * p.get_rot_per_wobble()
-        #return offset - input_wobbles*p.get_rot_per_wobble()*2*np.pi
         return -input_wobbles*p.get_rot_per_wobble()*2*np.pi
     
     def get_wobble_center(self, input_wobbles):
         return np.matmul(get_np_rot_mat(input_wobbles*2*np.pi), vert([self.params.eccentricity, 0]))
     
-    def resolve_forces(self, disp_arrows, wob, center = None):
+    def resolve_forces(self, disp_arrows, wob, center = None, torque_scale = 1):
         #if center == None:
         #    center = self.get_wobble_center(wob)
         center_vel = hor(self.get_vel_from_wobbles(wob, center))
@@ -30,7 +28,7 @@ class Cycloid:
         else:
             contributions = np.fromiter((np.max([rat, 0]) for rat in contributions), dtype=disp_arrows.dtype)
 
-        contributions = contributions/np.sum(contributions)
+        contributions = contributions/np.sum(contributions)*torque_scale
 
         resolved = np.empty([len(disp_arrows), 2, 2])
         for n in range(0, len(disp_arrows)):
@@ -103,27 +101,49 @@ class Cycloid:
         min_dist = dists.min()
         return wobs[np.where(dists == min_dist)[0]]
     
-    def get_nearest_edge_point_wobs(self, input_wobbles, twist, point, target_dist=None, target_err = 0.0001, max_depth = 10):
+    def get_bounding_wobs(self, input_wobbles, twist, point):
+        teeth = self.params.teeth()
+
+        mid = self.get_nearest_starting_point_wobs(input_wobbles, twist, point)
+
+        wobbles_per_rot = int((self.params.draw_rot_per_wobble())**-1)
+
+        wob_step = wobbles_per_rot/teeth
+
+        return (mid - wob_step, mid + wob_step)
+
+    
+    def get_nearest_edge_point_wobs(self, input_wobbles, point, twist = None, target_dist=None, target_err = 0.000001, max_depth = 25):
         if target_dist == None:
             target_dist = self.params.pin_r
+        if twist == None:
+            twist = self.get_twist(input_wobbles)
 
-        wob = self.get_nearest_starting_point_wobs(input_wobbles, twist, point)
+        #wob = self.get_nearest_starting_point_wobs(input_wobbles, twist, point)
 
+        low_bound, high_bound = self.get_bounding_wobs(input_wobbles, twist, point)
+        
         iters = 0
         err = None
 
-        while(err == None or iters < max_depth):
+        while (err == None or iters < max_depth):
             iters += 1
+
+            wob = (low_bound + high_bound)/2
+
             err_vec = point - self.get_edge_point_from_wobbles(wob, input_wobbles, twist)
             err = np_mag(err_vec)
 
             if err < target_dist + target_err:
                 break
-
-            self.get_draw_vel_from_wobbles(wob, input_wobbles, twist)
-
+            
             vel = self.get_draw_vel_from_wobbles(wob, input_wobbles, twist)
-            wob = wob + np.dot(vel, err_vec)/max(iters, self.params.pin_count)**(1/5)
+            
+            dot = np.dot(vel, err_vec)
+
+            if dot > 0:
+                high_bound = wob
+            else:
+                low_bound = wob
         
         return wob
-        
