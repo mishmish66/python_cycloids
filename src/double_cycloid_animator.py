@@ -89,8 +89,10 @@ class Double_Cycloid_Animator:
             for n in range(0, p2.pin_count):
                 point_draw_wob = c2.get_nearest_edge_point_wobs(in_wobbles, pin_points_2[n])
 
-                point = self.drawer2.get_point(point_draw_wob, in_wobbles)
-                norm = c2.get_outward_normal(point_draw_wob, twist, center, vert(point))
+                twist_2 = c2.get_twist(in_wobbles)
+
+                point = self.drawer2.get_point(point_draw_wob, in_wobbles, twist_2)
+                norm = c2.get_outward_normal(point_draw_wob, twist_2, center, vert(point))
 
                 point_norms[p1.pin_count + n][0] = hor(point)
                 point_norms[p1.pin_count + n][1] = hor(norm)
