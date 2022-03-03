@@ -10,6 +10,7 @@ from multiprocessing import Process, shared_memory
 import os
 import sys
 from functools import reduce
+import copy
 
 class Double_Cycloid_Animator:
     def __init__(self, drawer1, drawer2, starting_wobbles = 0, wobble_step = 0.01, ending_wobbles = None):
@@ -81,10 +82,10 @@ class Double_Cycloid_Animator:
 
         shared_chunks = [np.ndarray(chunk_with_shm[0].shape, dtype=float, buffer=chunk_with_shm[1].buf) for chunk_with_shm in chunks_with_shm]
 
-        results = [[result for result in res_chunk] for res_chunk in shared_chunks]
+        results = [copy.deepcopy(result) for res_chunk in shared_chunks for result in res_chunk]
 
-        points1 = [[res_point[0] for res_point in res_step] for res_step in results]
-        points2 = [[res_point[1] for res_point in res_step] for res_step in results]
+        points1 = [res_step[0] for res_step in results]
+        points2 = [res_step[1] for res_step in results]
 
         for shm in shm_bufs:
             shm.close()

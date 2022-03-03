@@ -9,16 +9,16 @@ import numpy as np
 
 scale = 0.01
 
-tooth_dif_1 = -1
-pins_1 = 20
+tooth_dif_1 = 1
+pins_1 = 7
 pinwheel_r_1 = 70*scale
 pin_r_1 = 7*scale
 
 tooth_dif_2 = 1
 pins_2 = 10
-pinwheel_r_2 = 32*scale
+pinwheel_r_2 = 27*scale
 pin_r_2 = 7*scale
-eccentricity = 2.5*scale
+eccentricity = 2*scale
 save = False
 
 cp1 = Cycloid_Params(pins_1, tooth_dif_1, pinwheel_r_1, pin_r_1,
