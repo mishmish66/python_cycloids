@@ -7,25 +7,25 @@ from src.cycloid_params import Cycloid_Params
 from matplotlib import animation
 import numpy as np
 
-scale = 0.005
+scale = 0.01
 
-tooth_dif_1 = 1
-pins_1 = 4
-pinwheel_r_1 = 150*scale
-pin_r_1 = 10*scale
+tooth_dif_1 = -1
+pins_1 = 20
+pinwheel_r_1 = 70*scale
+pin_r_1 = 7*scale
 
 tooth_dif_2 = 1
-pins_2 = 5
-pinwheel_r_2 = 80*scale
-pin_r_2 = 15*scale
-eccentricity = 10*scale
+pins_2 = 10
+pinwheel_r_2 = 32*scale
+pin_r_2 = 7*scale
+eccentricity = 2.5*scale
 save = False
 
 cp1 = Cycloid_Params(pins_1, tooth_dif_1, pinwheel_r_1, pin_r_1,
                     eccentricity, offset_angle=0, internal=False)
 
 cp2 = Cycloid_Params(pins_2, tooth_dif_2, pinwheel_r_2, pin_r_2,
-                    eccentricity, offset_angle=100, internal=True)
+                    eccentricity, offset_angle=0, internal=True)
 
 c1 = Cycloid(cp1)
 c2 = Cycloid(cp2)
@@ -37,7 +37,7 @@ cd1 = Cycloid_Drawer(c1)
 cd2 = Cycloid_Drawer(c2)
 
 ca = Double_Cycloid_Animator(cd1, cd2, wobble_step=0.01)
-#ca = Cycloid_Animator(cd2, wobble_step=0.01)
+#ca = Cycloid_Animator(cd1, wobble_step=0.01)
 
 ani = ca.animate(fig, ax)
 

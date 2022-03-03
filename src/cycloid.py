@@ -119,12 +119,12 @@ class Cycloid:
         if twist == None:
             twist = self.get_twist(input_wobbles)
 
-        #wob = self.get_nearest_starting_point_wobs(input_wobbles, twist, point)
-
         low_bound, high_bound = self.get_bounding_wobs(input_wobbles, twist, point)
         
         iters = 0
         err = None
+
+        flipped = self.params.tooth_dif > 0 and self.params.internal or self.params.tooth_dif < 0 and not self.params.internal
 
         while (err == None or iters < max_depth):
             iters += 1
@@ -141,7 +141,9 @@ class Cycloid:
             
             dot = np.dot(vel, err_vec)
 
-            if dot > 0:
+            
+
+            if (dot > 0):# ^ flipped :
                 high_bound = wob
             else:
                 low_bound = wob

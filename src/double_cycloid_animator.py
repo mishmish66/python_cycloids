@@ -1,3 +1,4 @@
+from concurrent.futures import thread
 from matplotlib.pyplot import axes
 import numpy as np
 import math
@@ -5,6 +6,10 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 from matplotlib import patches
 from src.utils.math_utils import *
+from multiprocessing import Process, shared_memory
+import os
+import sys
+from functools import reduce
 
 class Double_Cycloid_Animator:
     def __init__(self, drawer1, drawer2, starting_wobbles = 0, wobble_step = 0.01, ending_wobbles = None):
@@ -22,28 +27,71 @@ class Double_Cycloid_Animator:
     
     def get_steps(self):
         return int((self.ending_wobbles - self.starting_wobbles)/self.wobble_step)
+
+    def get_cycloid_points_from_work_piece(self, work_piece):
+        wobbles = work_piece[0]
+        #print("getting edge vals step " + str(work_piece[1][0]) + "/" + str(work_piece[1][1]))
+        cycloid2_offset = self.get_cycloid2_offset(wobbles)
+
+        self.drawer2.cycloid.params.offset_angle = cycloid2_offset
+
+        c1_points = self.drawer1.get_points(wobbles, self.drawer1.steps)
+        c2_points = self.drawer2.get_points(wobbles, self.drawer1.steps)
+
+        return np.array([c1_points, c2_points])
+
+    def get_cycloid_points_range(self, wobbles_arr):
+        points = [self.get_cycloid_points_from_wobbles(wobbles) for wobbles in wobbles_arr]
+
+        return points
     
     def get_cycloid_points_temporal(self):
         steps = self.get_steps()
-        points1 = np.empty([steps, 2, self.drawer1.steps])
-        points2 = np.empty([steps, 2, self.drawer2.steps])
-        cycloid2_offsets = np.empty(steps)
+        wobbles_arr = np.fromiter((step * self.wobble_step for step in range(0, steps)), float)
+        cycloid2_offsets = [self.get_cycloid2_offset(wobbles) for wobbles in wobbles_arr]
 
-        for step in range(0, steps):
-            print("getting edge vals step " + str(step) + "/" + str(steps))
-            wobbles = step * self.wobble_step
+        thread_count = os.cpu_count()
 
-            cycloid2_offset = self.get_cycloid2_offset(wobbles)
-            self.drawer2.cycloid.params.offset_angle = cycloid2_offset
+        work_arr = list(zip(wobbles_arr, [(i, len(wobbles_arr)) for i in range(0, len(wobbles_arr))]))
 
-            c1_points = self.drawer1.get_points(wobbles, self.drawer1.steps)
-            c2_points =  self.drawer2.get_points(wobbles, self.drawer1.steps)
-            points1[step] = c1_points
-            points2[step] = c2_points
-            cycloid2_offsets[step] = cycloid2_offset
+        work_chunks = np.array_split(work_arr, thread_count)
+
+        res_chunks = [[([0.0]*self.drawer1.steps, [0.0]*self.drawer2.steps) for work_piece in work_chunk] for work_chunk in work_chunks]
+
+        res_chunks = [np.zeros([len(work_chunk), 2, 2, self.drawer1.steps], float) for work_chunk in work_chunks]
+
+        shm_bufs = [shared_memory.SharedMemory(create=True, size = chunk.nbytes) for chunk in res_chunks]
+
+        def t_func(work_i):
+            work_chunk = work_chunks[work_i]
+            shm_a = shared_memory.SharedMemory(name = shm_bufs[work_i].name)
+
+            res_arr = np.ndarray(res_chunks[work_i].shape, dtype=float, buffer=shm_a.buf)
+            res_arr_local = [self.get_cycloid_points_from_work_piece(work_piece) for work_piece in work_chunk]
+            for i in range(0, len(res_arr)): res_arr[i] = res_arr_local[i]
+            shm_a.close()
+
+        processes = [Process(target= t_func, args= (chunk_i,)) for chunk_i in range(0, thread_count)]
+
+        for process in processes: process.start()
+
+        for process in processes: process.join()
+
+        chunks_with_shm = zip(res_chunks, shm_bufs)
+
+        shared_chunks = [np.ndarray(chunk_with_shm[0].shape, dtype=float, buffer=chunk_with_shm[1].buf) for chunk_with_shm in chunks_with_shm]
+
+        results = [[result for result in res_chunk] for res_chunk in shared_chunks]
+
+        points1 = [[res_point[0] for res_point in res_step] for res_step in results]
+        points2 = [[res_point[1] for res_point in res_step] for res_step in results]
+
+        for shm in shm_bufs:
+            shm.close()
+            shm.unlink()
 
         return points1, points2, cycloid2_offsets
-    
+
     def get_cycloid2_offset(self, input_wobbles):
         return input_wobbles * 2 * np.pi /self.overall_ratio
     
@@ -114,8 +162,8 @@ class Double_Cycloid_Animator:
 
     def animate(self, fig, ax):
         points1, points2, cycloid2_offsets = self.get_cycloid_points_temporal()
-        arrow_vals_t, waste = self.get_arrow_vals_temporal()
-        print("WASTED FORCE: " + str(waste))
+        #arrow_vals_t, waste = self.get_arrow_vals_temporal()
+        #print("WASTED FORCE: " + str(waste))
         steps = self.get_steps()
 
         p1 = self.drawer1.cycloid.params
@@ -150,13 +198,13 @@ class Double_Cycloid_Animator:
             this_line_2 = points2[step]
             line1.set_data(this_line_1[0], this_line_1[1])
             line2.set_data(this_line_2[0], this_line_2[1])
-            arrow_vals = arrow_vals_t[step]
+            #arrow_vals = arrow_vals_t[step]
 
             arrows = np.array([])
 
-            for n in range(0, p1.pin_count + p2.pin_count):
-                arrow = arrow_vals[n]
-                arrows = np.append(arrows, ax.quiver(arrow[0][0], arrow[0][1], arrow[1][0], arrow[1][1], scale = 1, scale_units = 'xy', width = 0.005))
+            #for n in range(0, p1.pin_count + p2.pin_count):
+                #arrow = arrow_vals[n]
+                #arrows = np.append(arrows, ax.quiver(arrow[0][0], arrow[0][1], arrow[1][0], arrow[1][1], scale = 1, scale_units = 'xy', width = 0.005))
             
             self.drawer2.cycloid.params.offset_angle = cycloid2_offsets[step]
             pin_pos_arr2 = self.drawer2.get_pin_pos_arr()
